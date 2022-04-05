@@ -1,0 +1,20 @@
+[project]
+name = "jimmy"
+description = "Jimmy is just my (py)Yaml"
+version = "0.0.1"
+authors = [
+    { name = "Lorenzo Cerrone", email = "lorenzo.cerrone@iwr.uni-heidelberg.de" }
+]
+dependencies = [
+    "pyyaml",
+    "numpy"
+]
+
+[project.optional-dependencies]
+dev = [
+    "bump2version"
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"

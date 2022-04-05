@@ -1,0 +1,19 @@
+loader:
+  data_path: './data.h5'
+  batch_size: 15
+  features: &feat 10
+
+optimizer:
+  name: adam
+  lr: 1e-3
+
+logger:
+  path: './results'
+
+model:
+  name: GCN
+  input_size: *feat
+  hidden_size: 64
+  output_size: 3
+
+

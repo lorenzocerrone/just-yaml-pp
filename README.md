@@ -1,2 +1,2 @@
-# just-yaml-pp
-It's just Yaml plus some extras
+# jimmy is my modified yaml
+It's just my Yaml wrapper

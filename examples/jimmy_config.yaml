@@ -1,0 +1,23 @@
+# loader
+loader:
+  data_path: !join-paths [ !home [], 'test', 'data.h5' ] # paths to my files
+  batch_size: 15
+  features: &feat 10
+
+logger:
+  path: &path !unique-path './results/'
+  file: !unique-path [ './file.txt' ]
+  file2: !unique-path [ !make-absolute [ !join-paths [ 'test', 'data.h5' ] ] ]# paths to my files
+
+model:
+  name: GCN
+  input_size: !sum [ *feat, 1 ]
+  hidden_size: 64
+  output_size: 3
+
+jimmy:
+  template: !load ./examples/plain_yaml_config.yaml
+  dump_config: logger/path
+  grid-launcher:
+    loader/batch_size: [15]
+    optimizer/lr: !log-space [-5, -2, 4]
