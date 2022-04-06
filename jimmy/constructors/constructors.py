@@ -10,7 +10,12 @@ def jimmy_constructor(loader, node):
 
 
 def time_stamp(*args):
-    return datetime.now().strftime("%y_%m_%d_%H:%M:%S")
+    class TimeStamp:
+        @staticmethod
+        def apply(**kwargs):
+            return datetime.now().strftime("%y_%m_%d_%H:%M:%S")
+
+    return TimeStamp()
 
 
 def join(loader, node):

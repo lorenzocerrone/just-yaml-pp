@@ -12,6 +12,16 @@ def join_paths(loader, node):
     return return_path
 
 
+def find_glob(loader, node):
+    assert isinstance(node, nodes.SequenceNode)
+    seq = generic_constructor(loader, node)
+    return_path = pathlib.Path()
+    for path in seq[:-1]:
+        return_path = return_path / path
+
+    return list(return_path.glob(seq[-1]))
+
+
 def home_path(*args, **kwargs):
     path = pathlib.Path('.')
     return path.home()
@@ -51,9 +61,13 @@ def unique_path(loader, node):
 
 
 def make_absolute(loader, node):
-    assert isinstance(node, nodes.ScalarNode) or isinstance(node, nodes.SequenceNode), \
-        '"!make-absolute" is implemented only for ScalarNodes and SequenceNode.'
+    path = make_path(loader, node)
+    return path.absolute()
 
+
+def make_path(loader, node):
+    assert isinstance(node, nodes.ScalarNode) or isinstance(node, nodes.SequenceNode), \
+        '"!make-path" is implemented only for ScalarNodes and SequenceNode.'
     path = generic_constructor(loader, node, first_element=True)
     path = pathlib.Path(path)
-    return path.absolute()
+    return path

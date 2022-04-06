@@ -5,7 +5,7 @@ import yaml
 import itertools
 import copy
 from jimmy.constructors.math_constructors import build_range, build_lin_space, build_log_space, sum_nodes
-from jimmy.constructors.path_constructors import home_path, unique_path, make_absolute, join_paths
+from jimmy.constructors.path_constructors import home_path, unique_path, make_absolute, join_paths, make_path, find_glob
 from jimmy.constructors.constructors import join, jimmy_constructor, time_stamp
 from jimmy.jimmy_dict import JimmyDict
 
@@ -30,10 +30,12 @@ default_constructors = {'tag:yaml.org,2002:map': jimmy_constructor,
                         '!join': join,
                         '!time-stamp': time_stamp,
                         '!join-paths': join_paths,
-                        '!sum': sum_nodes,
+                        '!glob': find_glob,
                         '!home': home_path,
                         '!unique-path': unique_path,
-                        '!make-absolute': make_absolute,
+                        '!path': make_path,
+                        '!absolute-path': make_absolute,
+                        '!sum': sum_nodes,
                         '!range': build_range,
                         '!log-space': build_log_space,
                         '!lin-space': build_lin_space
@@ -60,12 +62,12 @@ def recursive_dict(a, **kwargs):
     return a
 
 
-def jimmy_representer(dumper, data):
+def jimmy_dumper(dumper, data):
     return dumper.represent_dict(getattr(data, 'items')())
 
 
-def path_representer(dumper, data):
-    data = str(data)
+def path_dumper(dumper, data):
+    data = str(data.absolute())
     return dumper.represent_str(data)
 
 
@@ -79,8 +81,8 @@ class Jimmy:
             yaml.add_constructor(key, func)
 
         yaml.add_constructor('!load', load)
-        yaml.add_representer(JimmyDict, jimmy_representer)
-        yaml.add_representer(pathlib.PosixPath, path_representer)
+        yaml.add_representer(JimmyDict, jimmy_dumper)
+        yaml.add_representer(pathlib.PosixPath, path_dumper)
 
         raw_config = _openfile_and_load(self.config_path)
         if 'jimmy' in raw_config:
