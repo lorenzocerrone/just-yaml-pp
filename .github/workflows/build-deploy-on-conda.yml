@@ -28,7 +28,7 @@ jobs:
       shell: bash -l {0}
       run: |
           mamba install -q boa
-          mamba mambabuild -c conda-forge
+          mamba mambabuild -c conda-forge conda-recipe
     - name: Create Jimmy env
       run: |
           mamba create -n jimmy -c local -c conda-forge jimmy
