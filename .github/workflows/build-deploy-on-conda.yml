@@ -1,0 +1,48 @@
+name: Conda Build
+
+on: [push]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set Jimmy version name
+      run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+    - name: Print PlantSeg version name
+      run: |
+        echo $RELEASE_VERSION
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        mamba-version: "*"
+        auto-activate-base: true
+        activate-environment: ""
+        channels: local,conda-forge,defaults
+        channel-priority: false
+
+    - shell: bash -l {0}
+      run: |
+        conda info --envs
+    - name: Build PlantSeg using Boa
+      shell: bash -l {0}
+      run: |
+          mamba install -q boa
+          mamba mambabuild -c conda-forge
+    - name: Create Jimmy env
+      run: |
+          mamba create -n jimmy -c local -c conda-forge jimmy
+    - name: Run pytest
+      shell: bash -l {0}
+      run: |
+        conda activate jimmy
+        pytest
+        conda deactivate
+    - name: Deploy on conda
+      if: ${{ startsWith( github.ref, 'refs/tags/') && success() }}
+      env:
+        ANACONDA_SECRET: ${{ secrets.ANACONDA_TOKEN }}
+      shell: bash -l {0}
+      run: |
+        mamba install -q anaconda-client
+        anaconda -t $ANACONDA_SECRET upload $CONDA/conda-bld/**/jimmy-*.tar.bz2

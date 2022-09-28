@@ -1,12 +1,12 @@
 from jimmy.constructors.utils import generic_constructor
-from jimmy.jimmy_dict import JimmyDict
+from jimmy.jimmy_dict import JimmyMap
 from yaml import nodes
 from datetime import datetime
 
 
 def jimmy_constructor(loader, node):
     node_mapping = loader.construct_mapping(node)
-    return JimmyDict(**node_mapping)
+    return JimmyMap(**node_mapping)
 
 
 def time_stamp(*args):

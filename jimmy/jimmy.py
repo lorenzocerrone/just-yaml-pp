@@ -6,13 +6,13 @@ import itertools
 import copy
 from jimmy.constructors.math_constructors import build_range, build_lin_space, build_log_space, sum_nodes
 from jimmy.constructors.path_constructors import home_path, unique_path, make_absolute, join_paths, make_path, find_glob
-from jimmy.constructors.constructors import join, jimmy_constructor, time_stamp
-from jimmy.jimmy_dict import JimmyDict
+from jimmy.constructors.basic_constructors import join, jimmy_constructor, time_stamp
+from jimmy.jimmy_dict import JimmyMap
 
 
-def merge_dict_inplace(a: JimmyDict, b: JimmyDict):
+def merge_dict_inplace(a: JimmyMap, b: JimmyMap):
     for key, value in b.items():
-        if isinstance(b.get(key), JimmyDict) and key in a:
+        if isinstance(b.get(key), JimmyMap) and key in a:
             a[key] = merge_dict_inplace(a.get(key), b.get(key))
         else:
             a[key] = b[key]
@@ -53,7 +53,7 @@ def load(loader, node):
 
 def recursive_dict(a, **kwargs):
     for key, value in a.items():
-        if isinstance(value, JimmyDict):
+        if isinstance(value, JimmyMap):
             recursive_dict(a.get(key), **kwargs)
 
         elif hasattr(value, 'apply'):
@@ -81,7 +81,7 @@ class Jimmy:
             yaml.add_constructor(key, func)
 
         yaml.add_constructor('!load', load)
-        yaml.add_representer(JimmyDict, jimmy_dumper)
+        yaml.add_representer(JimmyMap, jimmy_dumper)
         yaml.add_representer(pathlib.PosixPath, path_dumper)
 
         raw_config = _openfile_and_load(self.config_path)
@@ -112,7 +112,7 @@ class Jimmy:
         timer = time.time() - timer
         end_time = time_stamp()
 
-        summary = JimmyDict(start_time=start_time, runtime=timer, end_time=end_time, result=result)
+        summary = JimmyMap(start_time=start_time, runtime=timer, end_time=end_time, result=result)
         return result, summary
 
     def _simple_launcher(self, func, config):

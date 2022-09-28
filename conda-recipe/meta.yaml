@@ -1,0 +1,33 @@
+package:
+  name: jimmy
+  version: {{ RELEASE_VERSION }}
+
+source:
+  path: ..
+
+build:
+  noarch: python
+  script: "pip install . --no-deps --ignore-installed --no-cache-dir -vvv"
+  number: 1
+
+requirements:
+  build:
+    - python
+    - pip
+
+  run:
+    - python
+    - pyyaml
+    - numpy
+
+test:
+  imports:
+    - jimmy
+
+  requires:
+    - pytest
+  run:
+    - pytest
+about:
+  home: https://github.com/lorenzocerrone/python-jimmy
+  license: MIT
