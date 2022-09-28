@@ -36,6 +36,7 @@ jobs:
       shell: bash -l {0}
       run: |
         conda activate jimmy
+        conda install -c conda-forge pytest
         pytest
         conda deactivate
     - name: Deploy on conda
