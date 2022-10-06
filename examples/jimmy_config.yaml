@@ -19,8 +19,8 @@ model:
 time: !time-stamp []
 
 jimmy:
-  template: !load ./examples/plain_yaml_config.yaml
+  template: !load [ !join-paths [ !here [], 'plain_yaml_config.yaml' ] ]
   dump_config: logger/path # key descriptor of the output
-  grid-launcher:
-    loader/batch_size: [15]
+  grid_launcher:
+    loader/batch_size: [15, 'a']
     optimizer/lr: !log-space [-5, -2, 4]

@@ -15,5 +15,3 @@ model:
   input_size: *feat
   hidden_size: 64
   output_size: 3
-
-

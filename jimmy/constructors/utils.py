@@ -13,3 +13,11 @@ def generic_constructor(loader, node, first_element=False):
 
     elif isinstance(node, nodes.MappingNode):
         return loader.construct_mapping(node)
+
+
+def build_check_sequential(loader, node, expected_len: int = None):
+    assert isinstance(node, nodes.SequenceNode)
+    seq = generic_constructor(loader, node)
+    if expected_len is not None:
+        assert len(seq) == expected_len
+    return seq

@@ -1,7 +1,7 @@
-from jimmy.constructors.utils import generic_constructor
-from jimmy.jimmy_dict import JimmyMap
-from yaml import nodes
 from datetime import datetime
+
+from jimmy.constructors.utils import build_check_sequential
+from jimmy.jimmy_map import JimmyMap
 
 
 def jimmy_constructor(loader, node):
@@ -19,6 +19,5 @@ def time_stamp(*args):
 
 
 def join(loader, node):
-    assert isinstance(node, nodes.SequenceNode)
-    seq = generic_constructor(loader, node)
+    seq = build_check_sequential(loader, node)
     return ''.join([str(i) for i in seq])
