@@ -117,8 +117,8 @@ jimmy_launcher.grid_launcher(main) # return a list of all results
 ```
 
 In order to keep the runs results clean we defined a unique-path as log location.
-Unique path instead of using the basic versioning ('v1', 'v2', etc..), the `grid_launcher` will create a
-unique name based on the parameters used in each run ('reults/hparm_x=1_y_0.1_z/a_0', etc..).
+Unique path instead of using the basic versioning (`v1`, `v2`, etc..), the `grid_launcher` will create a
+unique name based on the parameters used in each run (`reults/hparm_x=1_y_0.1_z/a_0`, etc..).
 
 ## TODO List
 * parallelize the `grid_launcher` runs (still thinking if using simply multiprocessing or either dask or ray).
