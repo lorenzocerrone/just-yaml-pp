@@ -25,6 +25,9 @@ class JimmyMap(Mapping):
             return asdict(self)
         return self.__dict__
 
+    def pop(self, key: str):
+        return self.to_dict().pop(key)
+
     def __setitem__(self, *args):
         if is_dataclass(self):
             raise NotImplementedError('__setitem__ is not implemented for dataclasses')
@@ -56,3 +59,20 @@ def split_jimmy_map(jmap, key='jimmy'):
 
 
 GenericDict = Union[JimmyMap, dict]
+
+
+class Configurator(JimmyMap):
+    name: str
+    kwargs: GenericDict
+
+    def __init__(self, name: str, kwargs: GenericDict):
+        super().__init__(name=name, kwargs=kwargs)
+        assert hasattr(self, 'name'), "'name' arguments not found in config"
+        assert isinstance(self.name, str), "'name' must be a string"
+
+        assert hasattr(self, 'kwargs'), "'kwargs' arguments not found in config"
+        assert isinstance(self.kwargs, JimmyMap) or isinstance(self.kwargs, dict), \
+            "'kwargs' must be a either a JimmmyMap or a dict"
+
+    def configure(self, available_options: GenericDict):
+        return available_options[self.name](**self.kwargs)
