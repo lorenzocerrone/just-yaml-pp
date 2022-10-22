@@ -9,9 +9,9 @@ class JimmyMap(Mapping):
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-    def __repr__(self):
+    def __repr__(self, out_str='JimmyMap'):
         divider = '; '
-        out_str = 'JimmyMap('
+        out_str = f'{out_str}('
         for key, values in self.to_dict().items():
             if isinstance(values, JimmyMap):
                 values = 'JimmyMap(**)'
@@ -65,7 +65,7 @@ class Configurator(JimmyMap):
     name: str
     kwargs: GenericDict
 
-    def __init__(self, name: str, kwargs: GenericDict):
+    def __init__(self, name: str, kwargs: JimmyMap):
         super().__init__(name=name, kwargs=kwargs)
         assert hasattr(self, 'name'), "'name' arguments not found in config"
         assert isinstance(self.name, str), "'name' must be a string"
@@ -73,6 +73,9 @@ class Configurator(JimmyMap):
         assert hasattr(self, 'kwargs'), "'kwargs' arguments not found in config"
         assert isinstance(self.kwargs, JimmyMap) or isinstance(self.kwargs, dict), \
             "'kwargs' must be a either a JimmmyMap or a dict"
+
+    def __repr__(self, out_str='Configurator'):
+        return super().__repr__(out_str=out_str)
 
     def configure(self, available_options: GenericDict):
         return available_options[self.name](**self.kwargs)

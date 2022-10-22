@@ -1,8 +1,18 @@
-from jimmy import jimmy_grid_launcher
+from jimmy import JimmyLauncher
 from plain_yaml_example import main
 
+
+def gcn(hidden_size: int,
+        input_size: int,
+        output_size: int):
+    print(f' -gcn, {hidden_size=}, {input_size=}, {output_size=}')
+    ...
+    return 'result'
+
+
+available_models = {'GCN': gcn}
+
+
 if __name__ == '__main__':
-    func = jimmy_grid_launcher(main)
-    func()
-
-
+    jimmy_launcher = JimmyLauncher()
+    jimmy_launcher.simple_launcher(main)

@@ -10,11 +10,12 @@ logger:
   path: !unique-path './results/' # paths to my files
   file: !path './file.txt'
 
-model:
+model: !configurator
   name: GCN
-  input_size: !sum [ *feat, 1 ]
-  hidden_size: 64
-  output_size: 3
+  kwargs:
+    input_size: !sum [ *feat, 1 ]
+    hidden_size: 64
+    output_size: 3
 
 time: !time-stamp []
 

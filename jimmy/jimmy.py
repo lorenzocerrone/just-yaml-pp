@@ -9,7 +9,7 @@ import copy
 from jimmy.constructors.math_constructors import build_range, build_lin_space, build_log_space, sum_nodes
 from jimmy.constructors.path_constructors import home_path, unique_path, make_absolute, join_paths, make_path
 from jimmy.constructors.path_constructors import join_paths_glob, here_path
-from jimmy.constructors.basic_constructors import jimmy_constructor, time_stamp, join
+from jimmy.constructors.basic_constructors import jimmy_constructor, time_stamp, join, jimmy_configurator_constructor
 from jimmy.utils import config_parser
 from jimmy.jimmy_map import JimmyMap, split_jimmy_map, GenericDict, Configurator
 from functools import partial
@@ -17,6 +17,8 @@ from typing import Any, Callable
 
 
 def merge_dict_inplace(a: GenericDict, b: GenericDict) -> GenericDict:
+    assert type(a) == type(b), f'Types in the source dictionary {b} of type {type(b)} ' \
+                               f'and target{a} of type {type(a)} must match.'
     for key, value in b.items():
         if isinstance(b.get(key), JimmyMap) and key in a:
             a[key] = merge_dict_inplace(a.get(key), b.get(key))
@@ -33,7 +35,7 @@ def update_from_template(jimmy_config: GenericDict, config: GenericDict) -> Gene
 
 
 default_constructors = {'tag:yaml.org,2002:map': jimmy_constructor,
-                        '!configurator': Configurator,
+                        '!configurator': jimmy_configurator_constructor,
                         '!join': join,
                         '!time-stamp': time_stamp,
                         '!join-paths': join_paths,

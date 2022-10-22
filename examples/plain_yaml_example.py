@@ -20,25 +20,15 @@ def get_optimizer(name, lr):
     return 'optimizer'
 
 
-def train_model(*args, name: str,
-                hidden_size: int,
-                input_size: int,
-                output_size: int):
-    print(f' -training: {name=}, {hidden_size=}, {input_size=}, {output_size=}')
-    ...
-    return 'result'
-
-
-def logger(result: str, path: str):
-    print(f' -saving: {result} to {path}')
+def logger(path: str):
+    print(f' -saving: {path}')
 
 
 def main(**config):
     print('Starting:')
     loader = get_loader(**config['loader'])
     optimizer = get_optimizer(**config['optimizer'])
-    result = train_model(loader, optimizer, **config['model'])
-    logger(result, path=config['logger']['path'])
+    logger(path=config['logger']['path'])
 
 
 if __name__ == '__main__':
