@@ -65,7 +65,9 @@ class Configurator(JimmyMap):
     name: str
     kwargs: GenericDict
 
-    def __init__(self, name: str, kwargs: JimmyMap):
+    def __init__(self, name: str, kwargs: JimmyMap = None):
+        kwargs = kwargs if kwargs is not None else JimmyMap()
+
         super().__init__(name=name, kwargs=kwargs)
         assert hasattr(self, 'name'), "'name' arguments not found in config"
         assert isinstance(self.name, str), "'name' must be a string"
