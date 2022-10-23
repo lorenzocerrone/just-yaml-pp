@@ -74,7 +74,7 @@ class Configurator(JimmyMap):
 
         assert hasattr(self, 'kwargs'), "'kwargs' arguments not found in config"
         assert isinstance(self.kwargs, JimmyMap) or isinstance(self.kwargs, dict), \
-            "'kwargs' must be a either a JimmmyMap or a dict"
+            "'kwargs' must be a either a JimmyMap or a dict"
 
     def __repr__(self, out_str='Configurator'):
         return super().__repr__(out_str=out_str)
