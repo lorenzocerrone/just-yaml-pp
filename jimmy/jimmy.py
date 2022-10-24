@@ -208,7 +208,8 @@ class JimmyLauncher:
         if self.jimmy_config.dump_config is None:
             return None
 
-        config['run_summary'] = summary
+        if summary is not None:
+            config['run_summary'] = summary
 
         config_path = self._get_dump_path(config, dump_key=self.jimmy_config.dump_config)
 
