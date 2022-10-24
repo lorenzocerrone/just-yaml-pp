@@ -16,6 +16,17 @@ from functools import partial
 from typing import Any, Callable
 
 
+def touch_file_or_dir(path: Path):
+    if path.exists():
+        return None
+
+    if path.suffix:
+        touch_file_or_dir(path.parent)
+        path.touch(exist_ok=True)
+    else:
+        path.mkdir(exist_ok=True, parents=True)
+
+
 def merge_dict_inplace(a: GenericDict, b: GenericDict) -> GenericDict:
     assert type(a) == type(b), f'Types in the source dictionary {b} of type {type(b)} ' \
                                f'and target{a} of type {type(a)} must match.'
@@ -236,6 +247,7 @@ class JimmyLauncher:
         if config is None:
             config = self.config
 
+        self.dump_config(config, summary=None)
         result, summary = self._run(func, config)
         self.dump_config(config, summary)
 
