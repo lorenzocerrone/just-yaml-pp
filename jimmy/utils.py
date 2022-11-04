@@ -35,7 +35,7 @@ def config_parser():
     parser.add_argument('--config', '-c', type=Path, help='Path to the YAML config file', required=True)
     parser.add_argument('--launcher', '-l',
                         type=str,
-                        default='none',
+                        default='simple',
                         help='Launcher type to use',
                         required=False)
     _, unknown = parser.parse_known_args()
