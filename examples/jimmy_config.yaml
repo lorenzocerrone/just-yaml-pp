@@ -25,4 +25,4 @@ jimmy:
   grid_launcher:
     loader/batch_size: [15, 'a']
     optimizer/lr: !log-space [-5, -2, 4]
-    model/kwargs/hidden_size: [32, 64]
+    model/kwargs/hidden_size: {'size_1': 64, 'size_2': 32}
