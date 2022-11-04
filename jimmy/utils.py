@@ -33,8 +33,14 @@ def _parse_unknown_args(parser, unknown):
 def config_parser():
     parser = argparse.ArgumentParser(description='Jimmy Parser')
     parser.add_argument('--config', '-c', type=Path, help='Path to the YAML config file', required=True)
+    parser.add_argument('--launcher', '-l',
+                        type=str,
+                        default='none',
+                        help='Launcher type to use',
+                        required=False)
     _, unknown = parser.parse_known_args()
     args_dict = _parse_unknown_args(parser, unknown).__dict__
     config = args_dict.pop('config')
+    launcher = args_dict.pop('launcher')
     args_dict = _primitive_type_inference(args_dict)
-    return config, args_dict
+    return config, args_dict, launcher

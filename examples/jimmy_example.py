@@ -10,9 +10,8 @@ def gcn(hidden_size: int,
     return 'result'
 
 
-available_models = {'GCN': gcn}
-
-
 if __name__ == '__main__':
     jimmy_launcher = JimmyLauncher()
-    jimmy_launcher.simple_launcher(main)
+    # jimmy_launcher.simple_launcher(main)
+    jimmy_launcher.auto_launcher(main)
+

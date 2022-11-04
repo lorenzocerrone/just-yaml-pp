@@ -1,19 +1,20 @@
-from dataclasses import dataclass
-from pathlib import Path, PosixPath
-from jimmy.constructors.utils import generic_constructor
-import time
-from collections.abc import Mapping
-import yaml
-import itertools
 import copy
+import itertools
+from collections.abc import Mapping
+from dataclasses import dataclass
+from functools import partial
+from pathlib import Path, PosixPath
+from typing import Any, Callable
+
+import yaml
+
+from jimmy.constructors.basic_constructors import jimmy_constructor, time_stamp, join, jimmy_configurator_constructor
 from jimmy.constructors.math_constructors import build_range, build_lin_space, build_log_space, sum_nodes
 from jimmy.constructors.path_constructors import home_path, unique_path, make_absolute, join_paths, make_path
 from jimmy.constructors.path_constructors import join_paths_glob, here_path
-from jimmy.constructors.basic_constructors import jimmy_constructor, time_stamp, join, jimmy_configurator_constructor
+from jimmy.constructors.utils import generic_constructor
+from jimmy.jimmy_map import JimmyMap, split_jimmy_map, GenericDict
 from jimmy.utils import config_parser
-from jimmy.jimmy_map import JimmyMap, split_jimmy_map, GenericDict, Configurator
-from functools import partial
-from typing import Any, Callable
 
 
 def touch_file_or_dir(path: Path):
@@ -28,8 +29,7 @@ def touch_file_or_dir(path: Path):
 
 
 def merge_dict_inplace(a: GenericDict, b: GenericDict) -> GenericDict:
-    assert type(a) == type(b), f'Types in the source dictionary {b} of type {type(b)} ' \
-                               f'and target{a} of type {type(a)} must match.'
+    assert isinstance(a, type(b)), f'{a} must be an instance of type {type(b)}.'
     for key, value in b.items():
         if isinstance(b.get(key), JimmyMap) and key in a:
             a[key] = merge_dict_inplace(a.get(key), b.get(key))
@@ -92,12 +92,13 @@ def update_nested_dict(base: GenericDict, dict_key: str, dict_value: Any) -> Gen
     keys = dict_key.split('/')
     key0, _key = keys[0], '/'.join(keys[1:])
     if len(keys) == 1:
-        base = merge_dict_inplace(base, {key0: dict_value})
+        base = merge_dict_inplace(base, JimmyMap(**{key0: dict_value}))
     else:
         if key0 not in base:
-            base = merge_dict_inplace(base, {key0: {}})
+            base = merge_dict_inplace(base, JimmyMap(**{key0: JimmyMap()}))
+
         up_config = update_nested_dict(base[key0], '/'.join(keys[1:]), dict_value)
-        base = merge_dict_inplace(base, {key0: up_config})
+        base = merge_dict_inplace(base, JimmyMap(**{key0: up_config}))
     return base
 
 
@@ -184,16 +185,19 @@ class JimmyConfig:
     template: GenericDict = None
     dump_config: str = None
     grid_launcher: GenericDict = None
+    ray_remote: GenericDict = None
+    ray_init: GenericDict = None
 
 
 class JimmyLauncher:
-    def __init__(self, config_path: Path = None, cli_kwargs: dict = None, constructors: Mapping = None):
+    def __init__(self, config_path: Path = None, cli_kwargs: dict = None, constructors: Mapping = None, launcher=None):
         if config_path is None:
-            config_path, cli_kwargs = config_parser()
+            config_path, cli_kwargs, launcher = config_parser()
 
         self.config_path = config_path
         self._config, jimmy_config = jimmy_load(self.config_path, cli_kwargs=cli_kwargs, constructors=constructors)
         self.jimmy_config = JimmyConfig(**jimmy_config)
+        self.default_launcher = launcher
 
     @property
     def config(self) -> GenericDict:
@@ -204,12 +208,9 @@ class JimmyLauncher:
         _config = copy.deepcopy(config)
         return recursive_dict(_config, **kwargs)
 
-    def dump_config(self, config, summary, name='config.yaml'):
+    def dump_config(self, config, name='config.yaml'):
         if self.jimmy_config.dump_config is None:
             return None
-
-        if summary is not None:
-            config['run_summary'] = summary
 
         config_path = self._get_dump_path(config, dump_key=self.jimmy_config.dump_config)
 
@@ -232,31 +233,14 @@ class JimmyLauncher:
             config_copy = config_copy.get(key)
         return config_copy
 
-    @staticmethod
-    def _run(func, config):
-        start_time, timer = time_stamp().apply(), time.time()
-        result = func(**config)
-        end_time, timer = time_stamp().apply(), time.time() - timer
-
-        summary = JimmyMap(start_time=start_time,
-                           runtime=timer,
-                           end_time=end_time,
-                           result=result)
-        return result, summary
-
-    def simple_launcher(self, func: Callable, config: GenericDict = None, return_summary: bool = False):
+    def simple_launcher(self, func: Callable, config: GenericDict = None):
         if config is None:
             config = self.config
 
-        self.dump_config(config, summary=None)
-        result, summary = self._run(func, config)
-        self.dump_config(config, summary)
+        self.dump_config(config)
+        return func(**config)
 
-        if return_summary:
-            return result, return_summary
-        return result
-
-    def grid_launcher(self, func: Callable, return_summary: bool = False):
+    def grid_launcher(self, func: Callable):
         if self.jimmy_config.grid_launcher is None:
             raise ValueError('Grid launcher required a "grid_launcher to be defined" in the jimmy-config.')
 
@@ -264,19 +248,59 @@ class JimmyLauncher:
         returns, summaries = [], []
         for key, config in grid_configs.items():
             config = self.parse_config(config, experiment_key=key)
-            result, summary = self.simple_launcher(func, config, return_summary=True)
+            result = self.simple_launcher(func, config)
             returns.append(result)
-            summaries.append(summary)
 
-        if return_summary:
-            return returns, summaries
         return returns
+
+    def ray_launcher(self, func: Callable):
+        import ray
+        if self.jimmy_config.grid_launcher is None:
+            raise ValueError('Ray launcher requires a "grid_launcher to be defined" in the jimmy-config.')
+
+        # setup ray
+        if self.jimmy_config.ray_init is None:
+            ray.init()
+        else:
+            ray.init(**self.jimmy_config.ray_init)
+
+        if self.jimmy_config.ray_remote is None:
+            remote_launcher = ray.remote(func)
+        else:
+            remote_launcher = ray.remote(**self.jimmy_config.ray_remote)(func)
+
+        grid_configs = compute_grid_configs(self._config, self.jimmy_config.grid_launcher)
+
+        futures = []
+        for key, config in grid_configs.items():
+            config = self.parse_config(config, experiment_key=key)
+            self.dump_config(config)
+            future = remote_launcher.remote(**config)
+            futures.append(future)
+
+        results = ray.get(futures)
+        return results
+
+    def auto_launcher(self, func: Callable):
+        assert self.default_launcher in ['simple', 'grid', 'ray']
+
+        if self.default_launcher == 'simple':
+            return self.simple_launcher(func=func)
+
+        elif self.default_launcher == 'grid':
+            return self.grid_launcher(func=func)
+
+        elif self.default_launcher == 'ray':
+            return self.ray_launcher(func=func)
+
+        else:
+            raise NotImplementedError
 
 
 def jimmy_launcher(func, **jimmy_kwargs):
     def wrapper():
         _jimmy_launcher = JimmyLauncher(**jimmy_kwargs)
-        return _jimmy_launcher.simple_launcher(func, return_summary=False)
+        return _jimmy_launcher.simple_launcher(func)
 
     return wrapper
 
@@ -284,6 +308,14 @@ def jimmy_launcher(func, **jimmy_kwargs):
 def jimmy_grid_launcher(func, **jimmy_kwargs):
     def wrapper():
         _jimmy_launcher = JimmyLauncher(**jimmy_kwargs)
-        return _jimmy_launcher.grid_launcher(func, return_summary=False)
+        return _jimmy_launcher.grid_launcher(func)
+
+    return wrapper
+
+
+def jimmy_ray_launcher(func, **jimmy_kwargs):
+    def wrapper():
+        _jimmy_launcher = JimmyLauncher(**jimmy_kwargs)
+        return _jimmy_launcher.ray_launcher(func)
 
     return wrapper

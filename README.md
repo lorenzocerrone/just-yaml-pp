@@ -121,8 +121,10 @@ Unique path instead of using the basic versioning (`v1`, `v2`, etc..), the `grid
 unique name based on the parameters used in each run (`reults/hparm_x=1_y_0.1_z/a_0`, etc..).
 
 ### configuration validation
+
 ```python
-from jimmy.jimm_validator import jimmy_validator
+from jimmy.jimmy_validator import jimmy_validator
+
 
 @jimmy_validator
 class Config:
@@ -130,12 +132,13 @@ class Config:
     name: str = 'name'
     x: int = 0
     # custom test functions
-    y: float = lambda value: 0 <value < 1
+    y: float = lambda value: 0 < value < 1
     # type hints are not strictly checked, but you can add as many tests as you wish
-    sigma: float = [lambda value: isinstance(value, float), lambda value: 0 <value < 5]
+    sigma: float = [lambda value: isinstance(value, float), lambda value: 0 < value < 5]
+
 
 def main(config: Config):
-    Config.validate(config) # will check that the config parsed from the yaml file will fit the required parameters
+    Config.validate(config)  # will check that the config parsed from the yaml file will fit the required parameters
 
 ```
 
