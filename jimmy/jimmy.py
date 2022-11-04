@@ -15,6 +15,7 @@ from jimmy.constructors.path_constructors import join_paths_glob, here_path
 from jimmy.constructors.utils import generic_constructor
 from jimmy.jimmy_map import JimmyMap, split_jimmy_map, GenericDict
 from jimmy.utils import config_parser
+from collections import UserList
 
 
 def touch_file_or_dir(path: Path):
@@ -160,18 +161,34 @@ def path_dumper(dumper, data: Path):
 
 
 def compute_grid_configs(config: GenericDict, kwargs: GenericDict) -> GenericDict:
+    class ReprByKey:
+        """ Used to represent dictionary by keys """
+        def __init__(self, key, value):
+            self.key = key
+            self.value = value
+
+    kwargs_values = []  # create a list of iterables with all possible variables
+    for key, value in kwargs.items():
+        if isinstance(value, JimmyMap):
+            list_values = [ReprByKey(k, v) for k, v in value.items()]
+            kwargs_values.append(list_values)
+        else:
+            kwargs_values.append(value)
+
     all_config = {}
-    for new_params in itertools.product(*kwargs.values()):
+    for new_params in itertools.product(*kwargs_values):  # create all possible combination of params
         _config = copy.deepcopy(config)
         new_name = 'hparam'
-
         for value, key in zip(new_params, kwargs.keys()):
-            _config = update_nested_dict(_config, key, value)
+            # handle repr by key
+            nice_value = value.key if isinstance(value, ReprByKey) else value
+            real_value = value.value if isinstance(value, ReprByKey) else value
+
+            _config = update_nested_dict(_config, key, real_value)
             key_final = key.split('/')[-1]
-            new_name += f'_{key_final}:{value}'
+            new_name += f'_{key_final}:{nice_value}'
 
         all_config[new_name] = _config
-
     return all_config
 
 
